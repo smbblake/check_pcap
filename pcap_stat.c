@@ -27,53 +27,6 @@ void pcap_stat_tbl_init(void)
 		INIT_HLIST_HEAD(&pcap_stat_tbl[i]);
 }
 
-struct pcap_stat_node *pcap_stat_node_pppoe_get(uint32_t saddr, uint32_t daddr,
-                        uint32_t protocol, uint16_t param1, uint16_t param2)
-{
-        struct pcap_stat_node *entry;
-        struct hlist_node *walk, *tmp;
-        unsigned int hashId = pcap_stat_hash(saddr, daddr, param1, param2);
-
-        hlist_for_each_safe(walk, tmp, &pcap_stat_tbl[hashId]) {
-                entry = hlist_entry(walk, struct pcap_stat_node, hlist);
-                if ((entry->saddr == saddr) &&
-                    (entry->daddr == daddr) &&
-                    (entry->protocol == protocol) &&
-                    (entry->param1 == param1) &&
-                    (entry->param2 == param2))
-                {
-                        return entry;
-                }
-        }
-
-        return NULL;
-}
-
-
-struct pcap_stat_node *pcap_stat_node_pppoe_add(uint32_t saddr, uint32_t daddr,
-                        uint32_t protocol, uint16_t param1, uint16_t param2)
-{
-        struct pcap_stat_node *entry;
-        unsigned int hashId = pcap_stat_hash(saddr, daddr, param1, param2);
-
-        entry = malloc(sizeof(struct pcap_stat_node));
-        if (!entry)
-                return NULL;
-
-        entry->saddr = saddr;
-        entry->daddr = daddr;
-        entry->protocol = protocol;
-        entry->param1 = param1;
-        entry->param2 = param2;
-        entry->count = 0;
-
-        INIT_HLIST_NODE(&entry->hlist);
-        hlist_add_head(&entry->hlist, &pcap_stat_tbl[hashId]);
-
-        return entry;
-}
-
-
 struct pcap_stat_node *pcap_stat_node_get(uint32_t saddr, uint32_t daddr, 
 			uint32_t protocol, uint16_t param1, uint16_t param2)
 {
@@ -117,24 +70,6 @@ struct pcap_stat_node *pcap_stat_node_add(uint32_t saddr, uint32_t daddr,
 	hlist_add_head(&entry->hlist, &pcap_stat_tbl[hashId]);
 
 	return entry;
-}
-
-void pcap_stat_show_pppoe(void)
-{
-        struct pcap_stat_node *entry;
-        struct hlist_node *walk, *tmp;
-        int i;
-        static char *proto_str[] = { "none", "icmp", "tcp", "udp" }; /* Need to sync with pcap_stat.h */
-
-        printf("sip | dip | protocol | l4 info | counts\n");
-        for (i = 0; i < PCAP_STAT_TABLE_SIZE; i++) {
-                if (hlist_empty(&pcap_stat_tbl[i]))
-                        continue;
-                hlist_for_each_safe(walk, tmp, &pcap_stat_tbl[i]) {
-                        entry = hlist_entry(walk, struct pcap_stat_node, hlist);
-                        printf("%s %s %s %d/%d %lu\n", ip2str(entry->saddr), ip2str(entry->daddr), proto_str[entry->protocol], entry->param1, entry->param2, entry->count);
-                }
-        }
 }
 
 void pcap_stat_show(void)
