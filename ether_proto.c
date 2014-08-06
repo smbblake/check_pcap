@@ -48,8 +48,10 @@ void ether_proto_handler(pcap_t *handle)
 
 		/* We don't handle 802.3/802.2/SNAP frames */
 		if (eth->h_proto >= 1536) {
-			pkt_free(pb);
-			continue;
+			if(eth->h_proto == 34916){
+				pkt_free(pb);
+				continue;
+			}
 		}
 
 		proto = ntohs(eth->h_proto);

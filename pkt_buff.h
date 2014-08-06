@@ -1,9 +1,10 @@
 #ifndef _PKT_BUFF_H
 #define _PKT_BUFF_H
 
+#define aligned_u64 unsigned long long __attribute__((aligned(8)))
+
 #include <stdint.h>
 #include <pcap.h>
-
 
 struct pkt_buff {
 	unsigned int		len;
